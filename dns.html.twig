@@ -1,0 +1,1177 @@
+{% extends "main.html.twig" %}
+{% block body %}
+    <section class="header">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="navbar-brand pt-2" href="#">
+                <img height="32" src="/images/dns-logo.jpg" width="72" />
+            </a>            
+            <button aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarNavDropdown" data-toggle="collapse" type="button">
+                <span class="navbar-toggler-icon"></span>
+            </button>            
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <h3 class="font-14 pro-display-bold pt-1 pl-5 mb-0">DNS list
+                </h3>
+            </div>
+            <div class="pull-right">
+                <div class="nav-item dropdown">
+                    <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle pr-0" data-toggle="dropdown" href="#" id="navbarDropdownMenuLink" role="button">
+                        <img avatar="qubic" class="name-lbl m-1-t" height="30" width="30">
+                    </a>
+                    <ul aria-labelledby="navbarDropdownMenuLink" class="dropdown-menu">
+                        <li class="dropdown-item font-16 pro-display-semibold" href="#">{{ loggedinuser}}</li>
+                        <li class="dropdown-item" href="#">
+                            <i class="fas fa-power-off pr-2 signout"></i>
+                            <a href="{{path('logout')}}">Signout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </section>
+    <section class="main-body">
+        <form id="list" name="list" method="post" action="{{ path('home') }}">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 pt-4">
+                        <h2 class="font-16 pro-display-heavy mb-0 head-title">
+                            DNS Check
+                            <a class="btn btn-success float-right font-14 pro-display-semibold" data-target=".create-dns-modal" data-toggle="modal" href="#">Create new
+                                <i class="fas fa-plus pl-2"></i>
+                            </a>
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="pt-4">
+                            <div class="tbl-header border-bottom-0">
+                                <table cellpadding="0" class="table dns-check mb-0" width="100%">
+                                    <thead>
+                                        <th width="100">Sl No.</th>
+                                        <th width="500">Name</th>
+                                        <th>Total Record</th>
+                                        <th width="120">Actions</th>
+                                    </thead>
+                                </table>
+                            </div>
+                            <div class="h-list">
+                                <div class="tbl-content border-top-0">
+                                    <table cellpadding="0" class="table dns-check mb-0" width="100%">
+                                        <tbody>
+                                            {% set Sl = 0 %}
+                                            {% for results in result %}
+                                                <tr>
+                                                    {% set Sl = Sl+1 %}
+                                                    <td class="pro-display-bold" width="100">{{ Sl }}</td>
+                                                    <td width="500">
+                                                        <p class="pro-display-bold m-0">{{ results.name }}</p>
+                                                        <span>Created :
+                                                            {{results.datecreated|date('d M y')}}
+                                                            ,
+                                                            <span>{{results.datecreated|date('g:i A')}}
+                                                            </span>
+                                                        </span>
+                                                    </td>
+                                                    {% set f = 0 %}
+                                                    {% for r in res %}
+                                                    {% if (r.dnsGroupId == results.id) %}
+                                                    {% set f = 1 %}
+                                                    <td class="pro-display-bold">{{r.count}}</td>
+                                                    {% endif %} 
+                                                    {% endfor %}
+                                                    {% if ( f == 0 ) %}
+                                                    <td class="pro-display-bold">0</td>
+                                                    {% endif %}
+                                                    <td width="120">
+                                                        <div class="dropdown">
+                                                            <button aria-expanded="false" aria-haspopup="true" class="btn action-btn dropdown-toggle" data-toggle="dropdown" id="dropdownMenuButton" type="button">
+                                                                Actions
+                                                            </button>
+                                                            <div aria-labelledby="dropdownMenuButton" class="dropdown-menu action-drop p-0">
+                                                               
+                                                                <a class="dropdown-item" data-target=".edit-dns-modal" data-toggle="modal" href="javascript:void(0)" onclick="editData({{results.id}},'{{results.name}}','{{ results.datecreated|date('d M y, g:i A')}}')">
+                                                                    <i class="fas fa-pen-square pr-2"></i>
+                                                                    Edit</a>
+                                                                <a class="dropdown-item border-0" data-toggle="modal" href="#exampleModalCenter " onclick="deleteId({{results.id}})">
+                                                                    <i class="fas fa-trash-alt pr-2"></i>
+                                                                    Delete</a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container pt-4">
+                <div class="row">
+                    <div class="col-md-12">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination check-pagination mb-0">
+                                <li class="page-item">
+                                {{ knp_pagination_render(result) }}
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <div aria-hidden="true" aria-labelledby="myExtraLargeModalLabel" class="modal fade create-dns-modal create-dns" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-large">
+            <div class="modal-content">
+                <form action="{{ path('insertdns') }}" method="post" name="createdns">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-8 mx-auto pt-5">
+                                <div class="modal-header pl-0">
+                                    <h5 class="modal-title pro-display-heavy" id="exampleModalLabel">Create DNS Record Group</h5>
+                                    <button aria-label="Close" class="close pr-0" data-dismiss="modal" type="button">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <span id="alertDnsGroup" style="color:red"></span>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-12 pb-2">
+                                            <label>Name</label>
+                                            <input class="form-control" id="name" name="name" placeholder="" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 pb-2">
+                                            <label>Description</label>
+                                            <textarea class="form-control h-auto" id="description" name="description" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 pb-4 pt-3">
+                                            <label class="pb-1">Make public Visible</label>
+                                            <label class="radio-div">On
+                                                <input checked="checked" name="privacy" type="radio" value="1">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            <label class="radio-div ml-4">Off
+                                                <input name="privacy" type="radio" value="0">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 pb-2">
+                                            <label class="pb-1">Notifications</label>
+                                            <label class="radio-div">On
+                                                <input checked="checked" name="notification" type="radio" value="1">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            <label class="radio-div ml-4">Off
+                                                <input name="notification" type="radio" value="0">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-8 mx-auto">
+                                    <button class="btn btn-success btn-lg font-16 pro-display-heavy success-save mr-2" name="save" onclick="return alphanumeric()" type="submit">Save</button>
+                                    <button class="btn  btn-default btn-lg font-16 pro-display-heavy" data-dismiss="modal" name="cancel" type="button">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="delete-dns">
+        <div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="exampleModalCenter" role="dialog" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h2 class="pro-display-semibold font-18 pt-3">Are you sure?</h2>
+                        <p class="mb-0 font-13">Do you really want to delete these record ?
+                        </p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button class="btn  btn-default btn-lg font-13 pro-display-semibold" data-dismiss="modal" type="button">Cancel</button>
+                        <button class="btn btn-danger btn-lg font-13" name="deleterecordbtn" type="button">
+                            <a href="javascript:void(0)" onclick="deleteGroup(idDel)" style="color: #FEFEFE">Delete</a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div aria-hidden="true" aria-labelledby="myExtraLargeModalLabel" class="modal fade edit-dns-modal edit-dns" id="editDiv" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-large m-0">
+            <div class="modal-content border-0 rounded-0">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 pt-5">
+                            <div class="modal-header pl-0 border-0">
+                                <h5 class="modal-title pro-display-bold line-height-1">Details of -
+                                    <span id="grpName"></span>
+                                    <br/>
+                                    <span class="font-12 date-time pro-display-regular" id="editDateCreated">Created :
+                                    </span>
+                                </h5>
+                                <button aria-label="Close" class="close pr-0" data-dismiss="modal" type="button">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                             <h3 class="font-14 pro-display-regular"><span id="messageedit" style="color:red"> </span></h3>
+                            <div class="modal-body pl-0 pt-0 modal-scroll"> 
+                                <div class="row pb-3" id="A">
+                                    <div class="col-md-12">
+                                        <div class="remove-col">
+                                            <h2 class="font-14 m-0">A Record
+                                                <a class="float-right red-close" href="#">
+                                                    <i class="far fa-window-close"></i>
+                                                </a>
+                                            </h2>
+                                        </div>
+                                        <div class="pt-2 section1">
+                                            <form id="formEditA" method="post" name="formEditA">
+                                                <table cellpadding="0" class="table edit-dns-table mb-2" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>IP Address</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="aRecordEditTable"></tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                        <a class="btn btn-success float-right font-14 pro-display-semibold" href="javascript:void(0)" id="A_new" onclick="addNew('formEditA','A','false')">Add New Record
+                                            <i class="fas fa-plus pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-danger float-right font-14 pro-display-semibold" href="javascript:void(0)" id="A_delete" onclick="deleteChecked('formEditA')" style="display:none;">Delete
+                                            <i class="fas fa-trash-alt pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-primary float-right font-14 pro-display-semibold" href="javascript:void(0)" id="A_save" onclick="saveNew('A')" style="display:none;">Save
+                                            <i class="fas fa-save pl-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row pb-3">
+                                    <div class="col-md-12">
+                                        <div class="remove-col">
+                                            <h2 class="font-14 m-0">MX Records
+                                                <a class="float-right red-close" href="#">
+                                                    <i class="far fa-window-close"></i>
+                                                </a>
+                                            </h2>
+                                        </div>
+                                        <div class="pt-2 section2">
+                                            <form id="formEditMX" method="post" name="formEditMX">
+                                                <table cellpadding="0" class="table edit-dns-table mb-2" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>Reference</th>
+                                                        <th>Exchange</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="mxEditRecordTable"></tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                        <a class="btn btn-success float-right font-14 pro-display-semibold" href="javascript:void(0)" id="MX_new" onclick="addNew('formEditMX','MX','false')">Add New Record
+                                            <i class="fas fa-plus pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-danger float-right font-14 pro-display-semibold"  href="javascript:void(0)" id="MX_delete" onclick="deleteChecked('formEditMX')" style="display:none;">Delete
+                                            <i class="fas fa-trash-alt pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-primary float-right font-14 pro-display-semibold" href="javascript:void(0)" id="MX_save" onclick="saveNew('MX')" style="display:none;">Save
+                                            <i class="fas fa-save pl-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row pb-3">
+                                    <div class="col-md-12">
+                                        <div class="remove-col">
+                                            <h2 class="font-14 m-0">TXT Records
+                                                <a class="float-right red-close" href="#">
+                                                    <i class="far fa-window-close"></i>
+                                                </a>
+                                            </h2>
+                                        </div>
+                                        <div class="pt-2 section3">
+                                            <form id="formEditTXT" method="post" name="formEditTXT">
+                                                <table cellpadding="0" class="table edit-dns-table mb-2" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>Value</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="txtRecordEditTable"></tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                        <a class="btn btn-success float-right font-14 pro-display-semibold" href="javascript:void(0)" id="TXT_new" onclick="addNew('formEditTXT','TXT','false')">Add New Record
+                                            <i class="fas fa-plus pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-danger float-right font-14 pro-display-semibold" href="javascript:void(0)" id="TXT_delete" onclick="deleteChecked('formEditTXT')" style="display:none;">Delete
+                                            <i class="fas fa-trash-alt pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-primary float-right font-14 pro-display-semibold"  href="javascript:void(0)" id="TXT_save" onclick="saveNew('TXT')" style="display:none;">Save
+                                            <i class="fas fa-save pl-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row pb-3">
+                                    <div class="col-md-12">
+                                        <div class="remove-col">
+                                            <h2 class="font-14 m-0">Reverse DNS ( PTR ) Record
+                                                <a class="float-right red-close" href="#">
+                                                    <i class="far fa-window-close"></i>
+                                                </a>
+                                            </h2>
+                                        </div>
+                                        <div class="pt-2 section4">
+                                            <form id="formEditPTR" method="post" name="formEditPTR">
+                                                <table cellpadding="0" class="table edit-dns-table mb-2" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">IP Address</th>
+                                                        <th>Value</th>
+                                                    </thead>
+                                                    <tbody id="ptrRecordEditTable"></tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                        <a class="btn btn-success float-right font-14 pro-display-semibold" href="javascript:void(0)" id="PTR_new" onclick="addNew('formEditPTR','PTR','false')">Add New Record
+                                            <i class="fas fa-plus pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-danger float-right font-14 pro-display-semibold" href="javascript:void(0)" id="PTR_delete" onclick="deleteChecked('formEditPTR')" style="display:none;">Delete
+                                            <i class="fas fa-trash-alt pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-primary float-right font-14 pro-display-semibold" href="javascript:void(0)" id="PTR_save" onclick="saveNew('PTR')" style="display:none;">Save
+                                            <i class="fas fa-save pl-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row pb-3">
+                                    <div class="col-md-12">
+                                        <div class="remove-col">
+                                            <h2 class="font-14 m-0">CNAME Record
+                                                <a class="float-right red-close" href="#">
+                                                    <i class="far fa-window-close"></i>
+                                                </a>
+                                            </h2>
+                                        </div>
+                                        <div class="pt-2 section5">
+                                            <form id="formEditCname" method="post" name="formEditCname">
+                                                <table cellpadding="0" class="table edit-dns-table mb-2" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>Reference</th>
+                                                        <th>Exchange</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="cnameRecordEditTable"></tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                        <a class="btn btn-success float-right font-14 pro-display-semibold" href="javascript:void(0)" id="CNAME_new" onclick="addNew('formEditCname','CNAME','false')">Add New Record
+                                            <i class="fas fa-plus pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-danger float-right font-14 pro-display-semibold" href="javascript:void(0)" id="CNAME_delete" onclick="deleteChecked('formEditCname')" style="display:none;">Delete
+                                            <i class="fas fa-trash-alt pl-2"></i>
+                                        </a>
+                                        <a class="btn btn-primary float-right font-14 pro-display-semibold" href="javascript:void(0)" id="CNAME_save" onclick="saveNew('CNAME')" style="display:none;">Save
+                                            <i class="fas fa-save pl-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div aria-hidden="true" aria-labelledby="myExtraLargeModalLabelHistory" class="modal fade history-dns-modal history-dns" id="historyDiv" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-content-size modal-large m-0">
+            <div class="modal-content modal-content-size border-0 rounded-0">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 pt-5">
+                            <div class="modal-header pl-0 border-0">
+                                <h5 class="modal-title pro-display-bold line-height-1"> History 
+                                    <span id="historyrecord"></span><br/>
+                                </h5>
+                                <button aria-label="Close" class="close pr-0" onclick="closeButton()" type="button">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body pl-0 pt-0 modal-scroll">
+                                <div class="row pb-3">
+                                    <div class="col-md-12"> 
+                                        <div class="pt-2 section1">
+                                            <form id="historyForm" method="post" name="historyForm">
+                                                <table cellpadding="0" class="table history-dns-table mb-2" width="100%"  >
+                                                    <thead id="historyTableHead">   
+                                                        <th width="300">Name</th>
+                                                        <th>Type</th>
+                                                        <th>Value</th>
+                                                        <th>Date</th>
+                                                        <th>Result</th>    
+                                                    </thead>
+                                                    <tbody id="historyTable"> 
+                                                    </tbody>
+                                                </table>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+    .modal-content-size {
+        height: 100%;
+            }
+    .modal {
+        overflow: auto !important;
+        height:100%;
+    }
+    #viewdnsmodal {
+        z-index: 1999; 
+    }
+    #historyDiv {
+        z-index: 2000; 
+    }
+    #historyTable{
+        border: 1px ;
+    }
+    .red-label{
+        color:red;
+    }
+    .green-label{
+        color:green;
+    }
+
+    </style>
+
+    <div aria-hidden="true" aria-labelledby="myExtraLargeModalLabel" class="modal fade view-dns-modal edit-dns" id="viewdnsmodal" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-large m-0">
+            <div class="modal-content border-0 rounded-0">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 pt-5">
+                            <div class="modal-header pl-0 border-0">
+                                <h5 class="modal-title pro-display-bold line-height-1 ">Details of
+                                    <span id="grpViewName"></span>
+                                    <br/>
+                                    <span class="font-12 date-time pro-display-regular" id="viewDateCreated">Created : </span>
+                                </h5>
+                                <button aria-label="Close" class="close pr-0" data-dismiss="modal" type="button">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>  
+                            <h3 class='font-14 pro-display-regular'><span id="messageview" style="color:red"></span></h3>
+                            <div class="modal-body pl-0 pt-0 modal-scroll"> 
+                                <form id="viewDnsRecord" method="post">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="remove-col">
+                                                <h2 class="font-14 m-0">A Record
+                                                    <span class="label-check label-verified"></span>
+                                                    <a class="float-right red-close" href="#">
+                                                        <i class="far fa-window-close"></i>
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                            <div class="pt-2 section1">
+                                                <table cellpadding="0" class="table edit-dns-table" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>IP Address</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="aRecordViewTable"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="remove-col">
+                                                <h2 class="font-14 m-0">MX Records
+                                                    <span class="label-check label-verified"></span>
+                                                    <a class="float-right red-close" href="#">
+                                                        <i class="far fa-window-close"></i>
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                            <div class="pt-2 section2">
+                                                <table cellpadding="0" class="table edit-dns-table" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>Reference</th>
+                                                        <th>Exchange</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="mxRecordViewTable"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="remove-col">
+                                                <h2 class="font-14 m-0">TXT Records
+                                                    <a class="float-right red-close" href="#">
+                                                        <i class="far fa-window-close"></i>
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                            <div class="pt-2 section3">
+                                                <table cellpadding="0" class="table edit-dns-table" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>IP Address</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="txtRecordViewTable"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="remove-col">
+                                                <h2 class="font-14 m-0">Reverse DNS ( PTR ) Record
+                                                    <a class="float-right red-close" href="#">
+                                                        <i class="far fa-window-close"></i>
+                                                    </a>
+                                                    <span class="label-check label-n-verified"></span>
+                                                </h2>
+                                            </div>
+                                            <div class="pt-2 section4">
+                                                <table cellpadding="0" class="table edit-dns-table" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">IP Address</th>
+                                                        <th>Value</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="ptrRecordViewTable"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="remove-col">
+                                                <h2 class="font-14 m-0">CNAME Record
+                                                    <a class="float-right red-close" href="#">
+                                                        <i class="far fa-window-close"></i>
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                            <div class="pt-2 section5">
+                                                <table cellpadding="0" class="table edit-dns-table" width="100%">
+                                                    <thead>
+                                                        <th width="40"></th>
+                                                        <th width="300">Domain Name</th>
+                                                        <th>Reference</th>
+                                                        <th>Exchange</th>
+                                                        <th width="100"></th>
+                                                    </thead>
+                                                    <tbody id="cnameRecordViewTable"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock %} 
+
+{% block javascript %}
+{{ parent() }}
+<script>
+var idDel=0;
+var dnsGrpId='';
+var recordType='';
+var deleteCounter={'A':0,'TXT':0,'MX':0,'CNAME':0,'PTR':0};
+var grpName='';
+var createdDate='';
+function deleteId(id){
+    idDel = id;
+}
+
+function viewdata( id,name,date){ 
+   console.log(id);
+   dnsGrpId = id;
+   grpName=name;
+   createdDate=date;
+   $('#grpViewName').text(name);
+   $('#viewDateCreated').text(date);
+    $.ajax({
+        type: "POST",
+        url: "{{ path('entryView')}}",
+        beforeSend: function() {
+            $('#aRecordViewTable').html('');
+            $('#mxRecordViewTable').html('');
+            $('#txtRecordViewTable').html(''); 
+            $('#cnameRecordViewTable').html('');
+            $('#ptrRecordViewTable').html('');
+        },
+        data: {
+            id: id
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+        processData(response);
+    })
+    .fail(function(error) {
+        console.log( "error" );
+    })
+}
+
+function editData( id ,name,date){
+    $('#messageedit').text("");
+    $('#messageview').text("");
+    dnsGrpId = id;
+    grpName=name;
+    createdDate=date;
+    $('#grpName').text(name);
+    $('#editDateCreated').text(date);
+    $.ajax({
+        type: "POST",
+        url: "{{ path('entryView')}}",
+        beforeSend: function() {
+            $('#aRecordEditTable').html('');
+            $('#txtRecordEditTable').html(''); 
+            $('#mxEditRecordTable').html('');
+            $('#cnameRecordEditTable').html('');
+            $('#ptrRecordEditTable').html('');
+        },
+        data: {
+            id: id
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+        processEditData(response);
+    })
+    .fail(function() {
+        console.log( "error" );
+    })
+}
+
+function processEditData(response){
+    var htmlA = '';
+    var htmlMx = '';  
+    var htmlCname = '';
+    var htmlTxt = '';
+    var htmlPtr = '';
+    $.each(response ,function(index,val) { 
+        if(index == 'A'){
+            for(var i=0;i<val.length;i++){
+                htmlA+=editHtml(val[i], 'A');
+            }
+        }
+       else if(index == 'TXT'){
+            for(var i=0;i<val.length;i++){
+                htmlTxt+=editHtml(val[i],'TXT');
+            }
+        } 
+       else if(index == 'PTR'){
+            for(var i=0;i<val.length;i++){
+                htmlPtr+=editHtml(val[i],'PTR');
+            }
+        } 
+        else if(index == 'MX'){
+            for(var i=0;i<val.length;i++){
+                htmlMx+=editMxCname(val[i],'MX');
+            }
+        }
+        else {
+            for(var i = 0;i < val.length;i++){
+                htmlCname+=editMxCname(val[i],'CNAME');
+            }
+        }
+    }); 
+
+    $('#aRecordEditTable').html(htmlA);
+    $('#txtRecordEditTable').html(htmlTxt); 
+    $('#mxEditRecordTable').html(htmlMx);
+    $('#cnameRecordEditTable').html(htmlCname);
+    $('#ptrRecordEditTable').html(htmlPtr);
+}
+
+function saveNew(tableName)
+{
+    var addNewBtn = document.getElementById(tableName+'_new');
+    var save = document.getElementById(tableName+'_save');
+    var name=document.getElementById(tableName+'Name').value;
+    var value=document.getElementById(tableName+'Value').value;  
+    var data = {}; 
+    if((tableName=='CNAME')||(tableName=='MX')){
+        var ttl=document.getElementById(tableName+'ttl').value;
+        if((name!='')&&(value!='')&&(ttl!='')){
+            data = { name:name,value:value,ttl:ttl,type:tableName,dnsGroupId:dnsGrpId };
+        }
+        else{
+            console.log('Fill in the empty feilds');
+            return;
+        }
+    }
+    else
+    {
+        if((name!='')&&(value!=''))
+        { ttl=1;
+        data = { name:name,value:value,ttl:ttl,type:tableName,dnsGroupId:dnsGrpId };
+        }
+        else{
+            console.log('Fill in all the feilds');
+            return;
+        }
+
+    }
+    $.ajax({
+                type: "POST",
+                url: "{{ path('insertRecord')}}",
+                data: data,
+                dataType: 'json'
+            })
+            .done(function(response) {
+                console.log(response); 
+                if(response['status']=='Success')
+                {
+                    editData(dnsGrpId,grpName,createdDate);
+                }
+                else{
+                    alert("Record insertion failed");
+                }
+            })
+            .fail(function() {
+                console.log('error');       
+            }) 
+    if(save){
+        addNewBtn.style.display = "block";
+        save.style.display = "none";  
+    }
+}
+
+function addNew(param,tableName,verify)
+{
+    var html='';
+    var addNewBtn = document.getElementById(tableName+'_new');
+    var save = document.getElementById(tableName+'_save');
+    if((param == 'formEditCname') ||(param == 'formEditMX'))
+    {
+       html+=editMxCname({id:'',name:'',value:'',ttl:'',dnsGroupId:dnsGrpId},'',tableName,verify);
+       if(param == 'formEditCname')
+       {
+           $('#cnameRecordEditTable').append(html); 
+       }
+       else
+       {
+            $('#mxEditRecordTable').append(html);
+       }
+    }
+    else
+    {
+        html+=editHtml({id:'',name:'',value:'',dnsGroupId:dnsGrpId},'',tableName,verify);
+        if(param == 'formEditA')
+       {
+           $('#aRecordEditTable').append(html);
+       }
+       if(param == 'formEditTXT')
+       {
+           $('#txtRecordEditTable').append(html);
+       }
+       if(param == 'formEditPTR')
+       {
+           $('#ptrRecordEditTable').append(html);
+       }
+    }
+     if(save){
+        addNewBtn.style.display = "none";
+        save.style.display = "block";  
+    } 
+}
+
+function editMxCname(data,tblName,id,verify){ 
+    var edit='edit';
+    var verified = '';
+    if(verify=='false')
+    {
+        verified = ' <span id="ban" style="color:red" class="label red-label border-0 white-co ml-3"><i class="fas fa-ban"></i></span> ';
+    }
+    else
+    {
+        verified = ' <span id="check'+data['type']+data['id']+'" class="label ' + ((data['result']==2||data['result']=='') ? 'red-label' : 'green-label')+' border-0 white-co ml-3"><i class="fas fa-' + ((data['result']==2||data['result']=='') ? 'ban' : 'check')+'"></i></span>';
+    } 
+    var html=' <tr id='+tblName+''+data['id'] +'>  <td><label class="check-div"> <input value='+data['id']+' type="checkbox" onclick="deleteRecordEntry(event, \''+ tblName +'\')"  > <input '+ (id ? ('id='+id+'DnsGroupId') : '') +' type="hidden" value='+data['dnsGroupId']+'>  <span class="check-m"></span> </label></td> <td><input onchange="recordChanged(event,\''+data['id']+'\',\'name\')" required type="text" '+ (id ? ('id='+id+'Name') :  '') +' class="form-control" placeholder="" value='+data['name']+'></td> <td><input required type="text" onchange="recordChanged(event,\''+data['id']+'\',\'ttl\')" '+ (id ? ('id='+id+'ttl') :'') +' class="form-control" placeholder=".." value='+data['ttl']+'></td> <td class="br-0">'+verified+'<input onchange="recordChanged(event,\''+data['id']+'\',\'value\')" required '+ (id ? ('id='+id+'Value') :  '')+' type="text" class="form-control" placeholder=".." value=\''+data['value']+'\'> </td> <td><div class="dropdown"> <button class="btn action-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Actions </button> <div class="dropdown-menu action-drop p-0" aria-labelledby="dropdownMenuButton"> <a class="dropdown-item" href="javascript:void(0)" onclick="recheckRecord('+ data['id'] +',\''+data['type']+'\',\''+edit+'\')"> <i class="fas fa-sync-alt pr-2"></i></i> Recheck </a>  <a class="dropdown-item" href="javascript:void(0)" onclick="historyOfRecord('+ data['id'] +')"> <i class="fas fa-history pr-2"></i> History </a> <a class="dropdown-item border-0" href="javascript:void(0)" onclick="deleteRecord('+ data['id'] +')"> <i class="fas fa-trash-alt pr-2"></i> Delete</a> </div> </div></td> </tr> '; 
+
+    return html;
+}
+
+function editHtml(data,tblName,id,verify){
+
+   var edit='edit';
+   var verified ='';
+    if(verify == 'false')
+    {
+        verified = ' <span id="ban" style="color:red" class="label red-label border-0 white-co ml-3"><i class="fas fa-ban"></i></span>';
+    }
+    else{
+        verified = ' <span id="check'+data['type']+data['id']+'" class="label ' + ((data['result']==2||data['result']=='') ? 'red-label' : 'green-label')+' border-0 white-co ml-3"><i class="fas fa-' + ((data['result']==2||data['result']=='') ? 'ban' : 'check')+'"></i></span>';
+    } 
+    var html='  <tr id='+tblName+''+data['id'] +'> <td> <label class="check-div">  <input onclick="deleteRecordEntry(event, \''+ tblName +'\')" value='+data['id']+' type="checkbox">  <input '+ (id ? ('id='+id+'DnsGroupId') : '') +' type="hidden" value='+data['dnsGroupId']+'>  <span class="check-m"></span>  </label> </td>  <td class="add-name"><input onchange="recordChanged(event,\''+data['id']+'\',\'name\')" '+ (id ? ('id='+id+'Name') :  '') +' class="form-control" placeholder=".." type="text" value='+data['name']+'></td> <td class="br-0"> '+verified+'<input onchange="recordChanged(event,\''+data['id']+'\',\'value\')" '+ (id ? ('id='+id+'Value') :  '')+' class="form-control" placeholder=".." type="text" value=\''+data['value']+'\'></td> <td><div class="dropdown"> <button aria-expanded="false" aria-haspopup="true" class="btn action-btn dropdown-toggle" data-toggle="dropdown" id="dropdownMenuButton" type="button">Actions </button> <div aria-labelledby="dropdownMenuButton" class="dropdown-menu action-drop p-0"> <a class="dropdown-item" href="javascript:void(0)" onclick="recheckRecord('+ data['id'] +',\''+data['type']+'\',\''+edit+'\')"><i class="fas fa-sync-alt pr-2"></i> </i> Recheck </a>  <a class="dropdown-item" href="javascript:void(0)" onclick="historyOfRecord('+ data['id'] +')"><i class="fas fa-history pr-2"></i> History</a> <a class="dropdown-item border-0" href="javascript:void(0)" onclick="deleteRecord('+ data['id'] +')">  <i class="fas fa-trash-alt pr-2"></i> Delete</a></div></div> </td> </tr> '; 
+    return html;
+}
+
+function recordChanged(event,id,type){
+
+     var value= event.target.value;
+      $.ajax({
+        type: "POST",
+        url: "{{ path('recordChanged') }}",
+        data: {
+            id:id,value:value,type:type
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+       console.log(response);
+    })
+    .fail(function() {
+        console.log( "error" );
+    })
+}
+
+function deleteChecked(param)
+{
+    var id = [];
+    $('#'+param+ ' input[type=checkbox]').each(function() {
+      if ($(this).is(":checked")) {
+        id.push($(this).val());
+      }
+    });
+
+    if(id.length > 0){
+        $.ajax({
+          url: "{{path('deleteMultipleRecord')}}",
+          type: 'POST',
+          data: { id: id},
+          success: function(response){
+             $.each(id, function( i,l ){
+                  editData(dnsGrpId,grpName,createdDate);
+                  var addNewBtn = document.getElementById(recordType+'_new');
+                  var x = document.getElementById(recordType+'_delete');
+                  addNewBtn.style.display = "block";
+                  x.style.display = "none";
+             });
+          }
+        });
+    }
+}
+
+function deleteRecordEntry(event,tableName){
+    recordType=tableName;
+    if(event.target.checked){
+        deleteCounter[tableName]+=1;
+    }
+    else{
+        deleteCounter[tableName]-=1;
+    }
+     var addNewBtn = document.getElementById(tableName+'_new');
+     var x = document.getElementById(tableName+'_delete');
+     var save = document.getElementById(tableName+'_save');
+    if(deleteCounter[tableName]>0){
+        if(x){
+            addNewBtn.style.display = "none";
+            x.style.display = "block"; 
+            save.style.display = "none";
+        }
+    }
+    else{
+       if(x){
+           addNewBtn.style.display = "block";
+           x.style.display = "none";
+        }
+    }
+}
+
+function processData(response){ 
+    $('#messageedit').text("");
+    $('#messageview').text("");
+    var htmlA = '';
+    var htmlMx = '';  
+    var htmlCname = '';
+    var htmlTxt = '';
+    var htmlPtr = '';
+    $.each(response ,function(index, val) { 
+
+        if(index == 'A'){
+            for(var i=0;i<val.length;i++){
+                htmlA+=processHtml(val[i]);
+            }
+        }
+        else if(index == 'TXT'){
+            for(var i=0;i<val.length;i++){
+                htmlTxt+=processHtml(val[i]);
+            }
+        } 
+        else if(index == 'PTR'){
+            for(var i=0;i<val.length;i++){
+                htmlPtr+=processHtml(val[i]);
+            }
+        }
+        else if(index == 'MX'){
+            for(var i=0;i<val.length;i++){
+                htmlMx+=processMxCname(val[i]);
+            }
+        }
+        else {
+            for(var i = 0;i < val.length;i++){
+                htmlCname+=processMxCname(val[i]);
+            }
+        }
+    }); 
+    $('#aRecordViewTable').html(htmlA);
+    $('#mxRecordViewTable').html(htmlMx);
+    $('#txtRecordViewTable').html(htmlTxt); 
+    $('#cnameRecordViewTable').html(htmlCname);
+    $('#ptrRecordViewTable').html(htmlPtr);
+}
+
+function processHtml(data){
+    var verified = '';
+    var view = 'view';
+     verified = ' <span id="check'+data['type']+data['id']+'" class="label ' + ((data['result']==2||data['result']=='') ? 'red-label' : 'green-label')+' border-0 white-co ml-3"><i class="fas fa-' + ((data['result']==2||data['result']=='') ? 'ban' : 'check')+'"></i></span>';
+
+    var html = '<tr id='+data['type']+''+data['id']+'> <td> </td> <td class="verify-td">'+ data['name'] +' <span class="verify-line"></span> </td> <td class="br-0">'+ data['value'] +' <span id="status"> '+verified+' </span></td>  <td> <div class="dropdown"> <button aria-expanded="false" aria-haspopup="true" class="btn action-btn dropdown-toggle" data-toggle="dropdown" id="dropdownMenuButton" type="button">  Actions </button> <div aria-labelledby="dropdownMenuButton" class="dropdown-menu action-drop p-0">  <a class="dropdown-item" href="javascript:void(0)" onclick="recheckRecord('+ data['id'] +',\''+data['type']+'\',\''+view+'\')">  <i class="fas fa-sync-alt pr-2"></i> </i> Recheck </a> </div> </div> </td> </tr>'; 
+    return html;
+}
+
+function processMxCname(data){
+     
+    var view = 'view';
+    var verified = '';
+    verified = ' <span id="check'+data['type']+data['id']+'" class="label ' + ((data['result']==2||data['result']=='') ? 'red-label' : 'green-label')+' border-0 white-co ml-3"><i class="fas fa-' + ((data['result']==2||data['result']=='') ? 'ban' : 'check')+'"></i></span>';
+     
+    var html=' <tr id='+data['type']+''+data['id']+'> <td></td> <td class="verify-td">'+ data['name'] +'</td>  <td>'+data['ttl']+'</td> <td class="br-0">'+ data['value'] +'<span id="status"> '+verified+'</span> </td> <td><div class="dropdown"> <button class="btn action-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Actions </button> <div class="dropdown-menu action-drop p-0" aria-labelledby="dropdownMenuButton">  <a class="dropdown-item" href="javascript:void(0)" onclick="recheckRecord('+ data['id'] +',\''+data['type']+'\',\''+view+'\')"> <i class="fas fa-sync-alt pr-2"></i></i> Recheck </a> </div></div></td></tr>'; 
+    return html;
+}
+
+function recheckRecord(id,type,from){
+    var verified = '';
+     $.ajax({
+        type: "POST",
+        url: "{{ path('recheckRecord') }}",
+        data: {
+            id: id,type:type
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+        var ele=$('#check'+type+id)
+        ele.removeClass( "green-label red-label" );
+        if(response.check)
+        {
+            ele.addClass( "green-label" );
+            ele.html('<i class="fas fa-check"></i>');
+          
+        }else{
+             ele.addClass( "red-label" );
+             ele.html( '<i class="fas fa-ban"></i>');
+        }
+
+        var x=document.getElementById('message'+from);
+        x.style.fontWeight = "900";
+        if(response['status']=='verified')
+        {
+            $('#message'+from).text(type+' Record check Success  :  Record Match'); 
+            x.style.color = '#01af5b';
+        }
+        else if(response['status']=='not verified'){
+            $('#message'+from).text(type+' Record check Success  :  Record Mismatch');
+            x.style.color = '#f71120'; 
+        }
+        else
+        {
+           $('#message'+from).text(type+' Record check Failed'); 
+           x.style.color = '#f71120';  
+        }
+
+        // $('#status').html(verified); 
+    })
+    .fail(function(error) {
+        console.log( error );
+    })
+
+}
+
+function historyOfRecord(id)
+{ 
+    $.ajax({
+        type: "POST",
+        url: "{{ path('recordHistory') }}",
+        data: {
+            id: id
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+        if(response.length>0)
+        {
+            var html = '';
+            var status;
+            $.each(response ,function(index, val) { 
+                if(val['result']==1)
+                {
+                    status='SUCCESS';
+                }
+                else
+                {
+                    status='FAILURE';
+                }
+                var object1=val['dateTime'];
+                var d=Object.values(object1);
+                var d1 = new Date(d[0]);
+                var d2=(d1.getMonth() + 1) + '/' + d1.getDate() + '/' +  d1.getFullYear();
+                var hours = d1.getHours();
+                var minutes = d1.getMinutes();
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; 
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+                html+= '<tr ><td  >'+val['name']+'</td><td >'+val['type']+'</td><td >'+val['value']+'</td><td >'+d2+','+strTime+'</td><td >'+status+'</td></tr>';
+        }); 
+        $('#historyTable').html(html);
+        $('#historyDiv').modal('show');
+
+        } 
+        else{
+            console.log(response) 
+            $('#historyDiv').modal('hide');
+            alert("No history");
+        }
+        
+    })
+    .fail(function() {
+        console.log( "error" );
+    })
+} 
+
+function deleteRecord(id){
+    $.ajax({
+        type: "POST",
+        url: "{{ path('deleteRecord') }}",
+        data: {
+            id: id
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+       if(response['status']=='success')
+        { 
+            editData(dnsGrpId,grpName,createdDate);     
+        }
+    })
+    .fail(function() {
+        console.log( "error" );
+    })
+}
+
+function deleteGroup(id){
+   
+   $.ajax({
+        type: "POST",
+        url: "{{ path('deleteGroup') }}",
+        data: {
+            id: id
+        },
+        dataType: 'json'
+    })
+    .done(function(response) {
+        console.log(response);
+       if(response['status']=='success')
+        {
+            location.reload(true);
+        }
+    })
+    .fail(function() {
+        console.log( "error" );
+    }) 
+}
+
+function alphanumeric()
+{ 
+   var x = document.forms["createdns"]["name"].value;  
+    var letters = /^[a-zA-Z0-9 ]+$/i;
+    if((letters.test(x))&&(x!=''))
+    { 
+        return true;
+    }
+    else
+    {
+        msg="Please input alphanumeric characters ";
+        $('#alertDnsGroup').text(msg); 
+        return false;
+    }
+}
+
+function closeButton()
+{
+    $('#historyDiv').modal('hide');
+}
+
+$( document ).ready(function() {
+    console.log( {{grpId}} );
+    $('#messageedit').text("");
+    $('#messageview').text("");
+    if({{grpId}})
+    {
+        $('#viewdnsmodal').modal('show');
+        viewdata({{grpId}},name,createdDate);
+    } 
+});
+
+</script>
+{% endblock %}
